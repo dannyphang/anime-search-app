@@ -1,0 +1,23 @@
+.no-record-found-div {
+    display: grid;
+    justify-content: center;
+}
+
+.no-record-found-text {
+    font-size: 1.5rem;
+    color: var(--color-text);
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.no-record-found-button-div {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.no-record-found-image-div {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}

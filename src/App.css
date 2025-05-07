@@ -1,0 +1,8 @@
+:root {
+    --content-gap-xl: 14px;
+    --content-gap-l: 12px;
+    --content-gap: 10px;
+    --content-gap-s: 8px;
+    --content-gap-xs: 6px;
+    --border-radius: 8px;
+}

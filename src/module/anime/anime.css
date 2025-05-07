@@ -1,0 +1,21 @@
+.an-image {
+    grid-area: anImage;
+}
+
+.an-title {
+    grid-area: anTitle;
+}
+
+.an-synopsis {
+    grid-area: anSynopsis;
+}
+
+.title-div {
+    display: grid;
+    grid-template-areas:
+        "anImage anTitle"
+        "anImage anSynopsis";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    row-gap: var(--content-gap-xl);
+}

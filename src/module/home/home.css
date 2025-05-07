@@ -1,0 +1,7 @@
+.anime-list-div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--content-gap);
+    padding: var(--content-gap);
+}
