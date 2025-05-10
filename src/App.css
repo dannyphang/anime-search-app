@@ -1,8 +1,12 @@
 :root {
-    --content-gap-xl: 14px;
-    --content-gap-l: 12px;
-    --content-gap: 10px;
-    --content-gap-s: 8px;
-    --content-gap-xs: 6px;
-    --border-radius: 8px;
+  --content-gap-xxl: 20px;
+  --content-gap-xl: 14px;
+  --content-gap-l: 12px;
+  --content-gap: 10px;
+  --content-gap-s: 8px;
+  --content-gap-xs: 6px;
+  --border-radius: 8px;
+  --bg-secondary-color: #151f2e;
+  --bg-primary-color: #0b1622;
+  --primary-color: #9fadbd;
 }

@@ -5,122 +5,162 @@ import "./home.css";
 import AnimeCard from "../../core/shared/component/anime-card/anime-card";
 import Toast from "../../core/shared/component/toast/toast";
 import NoRecordFound from "../../core/shared/component/no-record-found/no-record-found";
-import animeData from "../../assets/anime.json";
-import { useNavigate } from "react-router-dom";
-import { LinearProgress } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { LinearProgress, Pagination } from "@mui/material";
+import { Search } from "@mui/icons-material";
 
 function Home() {
-    const navigate = useNavigate();
-    const [animeList, setAnimeList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState("");
-    const [searchText, setSearchText] = useState<string>("");
-    let emptyRecord: boolean = false;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [animeList, setAnimeList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [searchText, setSearchText] = useState<string>(""); // For binding input
+  const [debouncedSearchText, setDebouncedSearchText] = useState<string>(""); // For debounced API call
+  const [pagination, setPagination] = useState<any>({});
+  const [page, setPage] = useState<number>(1);
+  const [emptyRecord, setEmptyRecord] = useState<boolean>(false);
 
-    useEffect(() => {
-        const fetchAnime = async () => {
-            setLoading(true);
-            try {
-                const data = await getAllAnime();
-                if (data) {
-                    setAnimeList(data.data);
-                } else {
-                    emptyRecord = true;
-                    setToastMessage("No records found");
-                    setShowToast(true);
-                }
-            } catch (err: any) {
-                setAnimeList(animeData.data as any);
-                console.log(animeData);
-                // setError(err.message);
-                // setToastMessage(err.message);
-                // setShowToast(true);
-            } finally {
-                setLoading(false);
-            }
-        };
+  // Initialize from URL
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const query = queryParams.get("q") || "";
+    const pageParam = parseInt(queryParams.get("page") || "1");
 
-        fetchAnime();
-    }, []);
+    if (query !== searchText) setSearchText(query);
+    if (pageParam !== page) setPage(pageParam);
+  }, [location.search]);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setSearchText(searchText);
+  // Update URL on debounced search or page changes
+  useEffect(() => {
+    navigate(`?q=${searchText}&page=${page}`);
+  }, [searchText, page]);
 
-            setLoading(true);
-            const fetchAnimeWithQuert = async () => {
-                try {
-                    const data = await searchAnime(searchText);
-                    if (data) {
-                        setAnimeList(data.data);
-                    } else {
-                        emptyRecord = true;
-                        setToastMessage("No records found");
-                        setShowToast(true);
-                    }
-                } catch (err: any) {
-                    setAnimeList(animeData.data as any);
+  // Fetch anime data when debouncedSearchText or page changes
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      // setAnimeList([]);
+      fetchAnimeWithQuery(searchText, page);
+    }, 250);
 
-                    let tempList = animeData.data.filter((anime: any) => {
-                        return anime.title.toLowerCase().includes(searchText.toLowerCase());
-                    });
-                    if (tempList.length > 0) {
-                        setAnimeList(tempList as any);
-                    } else {
-                        emptyRecord = true;
-                        setToastMessage("No records found");
-                        setShowToast(true);
-                    }
-                    setLoading(false);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchAnimeWithQuert();
-        }, 1000); // 1s debounce
+    return () => clearTimeout(handler);
+  }, [searchText, page]);
 
-        return () => {
-            clearTimeout(handler); // cancel previous timeout on new keystroke
-        };
-    }, [searchText]);
+  const fetchAnimeWithQuery = async (q: string, page: number) => {
+    try {
+      setLoading(true);
+      let data = q || page ? await searchAnime({ q, page }) : await getAllAnime();
 
-    const handleTextChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchText(event.target.value);
-    };
+      if (data?.data?.length > 0) {
+        // Remove duplicates by mal_id
+        const uniqueAnime = data.data.filter(
+          (anime: any, index: any, self: any) =>
+            index === self.findIndex((a: any) => a.mal_id === anime.mal_id)
+        );
 
-    const handleClearSearch = () => {
-        setSearchText("");
-    };
+        setAnimeList(uniqueAnime);
+        setPagination(data.pagination || {});
+        setEmptyRecord(false);
+      } else {
+        setAnimeList([]);
+        setEmptyRecord(true);
+        setToastMessage("No records found");
+        setShowToast(true);
+      }
+    } catch (err) {
+      setEmptyRecord(true);
+      setToastMessage("Failed to fetch anime data");
+      setShowToast(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleAnimeClick = (anime: any) => {
-        // navigate to anime details page
-        navigate(`/anime/${anime.mal_id}`);
-    };
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchText(value); // Update searchText immediately to reflect in the input
+    setPage(1); // Reset page when search changes
+  };
 
-    return (
-        <div className="">
-            {loading && <LinearProgress />}
-            <InputBase placeholder="Search" onChange={handleTextChange} value={searchText} />
-            <div className="anime-list-div">
-                {!emptyRecord ? (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--content-gap)", justifyContent: "center" }}>
-                        {animeList.map((anime: any) => {
-                            return (
-                                <div className="anime-card" key={anime.mal_id} onClick={() => handleAnimeClick(anime)}>
-                                    <AnimeCard anime={anime} />
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <NoRecordFound clearSearchButtonOnClick={handleClearSearch} />
-                )}
+  const handlePageTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setPage(Number(value) || 1); // Ensure valid page number
+  };
+
+  const handleClearSearch = () => {
+    setSearchText("");
+    setPage(1);
+  };
+
+  const handleAnimeClick = (anime: any) => {
+    navigate(`/anime/${anime.mal_id}`);
+  };
+
+  const handlePaginationChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  return (
+    <div className="home-page">
+      {loading && <LinearProgress />}
+      <div className="search-div">
+        <InputBase
+          placeholder="Search"
+          onChange={handleTextChange}
+          value={searchText} // Directly bind to searchText to reflect in the input
+          endIcon={<Search />}
+        />
+      </div>
+
+      <div className="anime-list-div">
+        {!emptyRecord ? (
+          <div className="anime-listing-div">
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "var(--content-gap-xxl)",
+                justifyContent: "center",
+              }}>
+              {animeList.map((anime: any) => (
+                <div
+                  className="anime-card"
+                  key={anime.mal_id}
+                  onClick={() => handleAnimeClick(anime)}>
+                  <AnimeCard anime={anime} />
+                </div>
+              ))}
             </div>
+            <div className="pagination-div">
+              <div style={{ display: "grid", alignItems: "center" }}>Go to </div>
+              <InputBase
+                value={page}
+                onChange={handlePageTextChange}
+                placeholder="Page"
+                inputProps={{ classes: { root: "pageCss" } }}
+              />
+              <Pagination
+                count={pagination.last_visible_page || 1}
+                shape="rounded"
+                page={page}
+                onChange={handlePaginationChange}
+              />
+            </div>
+          </div>
+        ) : (
+          <NoRecordFound clearSearchButtonOnClick={handleClearSearch} />
+        )}
+      </div>
 
-            <Toast open={showToast} message={toastMessage} severity="error" onClose={() => setShowToast(false)} />
-        </div>
-    );
+      <Toast
+        open={showToast}
+        message={toastMessage}
+        severity="error"
+        onClose={() => setShowToast(false)}
+      />
+    </div>
+  );
 }
+
 export default Home;

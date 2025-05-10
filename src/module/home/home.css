@@ -1,7 +1,35 @@
 .anime-list-div {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--content-gap);
-    padding: var(--content-gap);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--content-gap-xl);
+  padding: var(--content-gap);
+}
+
+.pagination-div {
+  display: flex;
+  justify-content: center;
+  gap: var(--content-gap);
+  margin: var(--content-gap) 0 0;
+}
+
+.search-div {
+  width: 100%;
+  padding: var(--content-gap);
+}
+
+.anime-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.anime-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+.pageCss .MuiInputBase-input {
+  padding: 4px 14px;
+  width: 30px;
 }

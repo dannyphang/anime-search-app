@@ -1,4 +1,19 @@
 .anime-card-div {
-    width: 200px;
-    height: 250px;
+  width: 185px;
+}
+
+.card-content-div {
+  padding: 0 !important;
+}
+
+.card-title-div {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  width: 100%;
+  padding: var(--content-gap);
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 21px !important;
 }
